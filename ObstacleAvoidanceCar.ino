@@ -1,23 +1,22 @@
-#include <ESP32Servo.h>
+#include <Servo.h>
 
-/**
- * Pins and Configurations
- */
-const int TRIG_PIN = 13;       // Pin connected to the Trig of the ultrasonic sensor
-const int ECHO_PIN = 12;       // Pin connected to the Echo of the ultrasonic sensor
-const int OBSTACLE_DISTANCE = 14; // Distance threshold for obstacle detection in cm
+//moteur 1
+#define enA 11
+#define in1 12
+#define in2 2
 
-Servo myServo;                 // Create a Servo object for controlling the servo motor
+//moteur 2
+#define enB 3
+#define in3 4
+#define in4 5
 
-// Motor 1 control pins
-const int enA = 23;            // PWM pin for motor 1
-const int in1 = 22;            // Direction pin 1 for motor 1
-const int in2 = 21;            // Direction pin 2 for motor 1
+//ultrasonic
+#define TRIG_PIN 6
+#define ECHO_PIN 7
 
-// Motor 2 control pins
-const int enB = 19;            // PWM pin for motor 2
-const int in3 = 18;            // Direction pin 1 for motor 2
-const int in4 = 5;             // Direction pin 2 for motor 2
+
+const int OBSTACLE_DISTANCE = 25; // Distance for obstacle detection in cm
+Servo myServo;
 
 enum go { LEFT, RIGHT };       // Enum to represent direction choices (LEFT or RIGHT)
 
@@ -33,7 +32,7 @@ void setup() {
     pinMode(ECHO_PIN, INPUT);
 
     // Servo motor setup
-    myServo.attach(14);         // Attach the servo motor to pin 14
+    myServo.attach(10);         // Attach the servo motor to pin 14
     myServo.write(90);          // Initialize the servo at the center position (90°)
 
     // Motor control pins setup
@@ -65,6 +64,7 @@ void loop() {
 
     if (distance <= OBSTACLE_DISTANCE) {
         Serial.println("Obstacle detected! Rotating servo to decide direction...");
+        
         rotateServo180();
     }
     else
@@ -87,6 +87,9 @@ void loop() {
  *      and sets the motor direction accordingly.
  */
 void rotateServo180() {
+
+    stopMotors();
+    delay(500);  
     float rightDistance = lookRight();  // Measure distance to the right
     delay(500);
     float leftDistance = lookLeft();   // Measure distance to the left
@@ -108,7 +111,7 @@ void rotateServo180() {
  *      and resets the servo to its center position.
  */
 float lookRight() {
-    myServo.write(10);  // Rotate servo to the right
+    myServo.write(0);  // Rotate servo to the right
     delay(500);
     float distance = measureDistance(); // Measure distance
     delay(100);
@@ -127,7 +130,7 @@ float lookRight() {
  *      and resets the servo to its center position.
  */
 float lookLeft() {
-    myServo.write(170); // Rotate servo to the left
+    myServo.write(180); // Rotate servo to the left
     delay(500);
     float distance = measureDistance(); // Measure distance
     delay(100);
@@ -191,8 +194,6 @@ float measureDistance() {
  *      for a predefined amount of time.
  */
 void setMotorDirection(go D) {
-    stopMotors();
-    delay(200);
     setMotorsBackward();
     delay(300);
     stopMotors();
@@ -210,13 +211,12 @@ void setMotorDirection(go D) {
       Serial.println("Invalid direction! No action taken.");
     }
 
-    delay(1000); // Allow the robot to complete the turn
-    stopMotors();
+    delay(250);
 }
 
 
 
-//motor functions
+/*motor functions*/
 
 /**
  * stopMotors - Stops all motors by setting their control pins to LOW and disabling PWM speed.
@@ -266,8 +266,14 @@ void setMotorsForward() {
  *      This creates a rotation effect that turns the robot to the right.
  */
 void rotationRight() {
-    setMotorDirection(in1, in2, enA, LOW, HIGH, 255); // Motor 1 backward
-    setMotorDirection(in3, in4, enB, HIGH, LOW, 255); // Motor 2 forward
+    // Set direction pins for both motors first
+    digitalWrite(in1, LOW);   // Motor A backward
+    digitalWrite(in2, HIGH);
+    digitalWrite(in3, HIGH);  // Motor B forward
+    digitalWrite(in4, LOW);
+    // Enable both motors at full speed
+    analogWrite(enA, 255);
+    analogWrite(enB, 255);
 }
 
 /**
@@ -278,8 +284,15 @@ void rotationRight() {
  *      This creates a rotation effect that turns the robot to the left.
  */
 void rotationLeft() {
-    setMotorDirection(in1, in2, enA, HIGH, LOW, 255); // Motor 1 forward
-    setMotorDirection(in3, in4, enB, LOW, HIGH, 255); // Motor 2 backward
+
+        // Set direction pins for both motors first
+    digitalWrite(in1, HIGH);   // Motor A backward
+    digitalWrite(in2, LOW);
+    digitalWrite(in3, LOW);  // Motor B forward
+    digitalWrite(in4, HIGH);
+    // Enable both motors at full speed
+    analogWrite(enA, 255);
+    analogWrite(enB, 255);
 }
 
 /**
