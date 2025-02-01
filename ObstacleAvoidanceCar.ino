@@ -32,7 +32,7 @@ void setup() {
     pinMode(ECHO_PIN, INPUT);
 
     // Servo motor setup
-    myServo.attach(10);         // Attach the servo motor to pin 14
+    myServo.attach(10);         // Attach the servo motor to pin 10
     myServo.write(90);          // Initialize the servo at the center position (90°)
 
     // Motor control pins setup
